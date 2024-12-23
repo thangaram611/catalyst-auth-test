@@ -25,7 +25,7 @@
             return "";
         }
         const getCustomTokenCallback = (email) => async () => {
-            const customTokenResp = await fetch(`https://project-rainfall-93730775.development.localcatalystserverless.com/server/authfn/execute?email_id=${email}`);
+            const customTokenResp = await fetch(`https://project-rainfall-96071408.development.localcatalystserverless.com/server/authfn/execute?email_id=${email}`);
             const customTokenOut = await customTokenResp.json();
             const customToken = JSON.parse(customTokenOut.output);
             return {
