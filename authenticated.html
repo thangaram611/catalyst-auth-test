@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticated page</title>
+    <script src="https://static.localzohocdn.com/catalyst/sdk/js/4.4.0/catalystWebSDK.js"></script>
+    <script src="/__catalyst/sdk/init.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" defer>
+        function getCookie(cname) {
+            let name = cname + "=";
+            let decodedCookie = decodeURIComponent(document.cookie);
+            let ca = decodedCookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+        const getCustomTokenCallback = (email) => async () => {
+            const customTokenResp = await fetch(`https://project-rainfall-93730775.development.localcatalystserverless.com/server/authfn/execute?email_id=${email}`);
+            const customTokenOut = await customTokenResp.json();
+            const customToken = JSON.parse(customTokenOut.output);
+            return {
+                client_id: customToken.client_id,
+                scopes: customToken.scopes,
+                jwt_token: customToken.jwt_token
+            };
+        }
+
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const type = urlParams.get('type');
+        if (type === 'TP') {
+            const emailid = getCookie("thirdparty_email_id");
+            if (!emailid) {
+                window.location.replace('/thirdparty.html');
+            }
+            await catalyst.auth.signinWithJwt(getCustomTokenCallback(emailid));
+        }
+        //Get the details of the current user
+        const currentUserResponse = await catalyst.userManagement.getCurrentProjectUser();
+
+        if (!currentUserResponse.content) {
+            alert('user not logged in!!! Current user is ' + currentUserResponse.content);
+            window.location.replace = '/index.html';
+        }
+        document.getElementById("username-title").textContent += currentUserResponse.content.email_id;
+        document.getElementById("loader").classList.add("hidden");
+    </script>
+</head>
+
+<body class="bg-gray-100">
+    <div id="loader" class="fixed w-screen h-screen z-50 bg-gray-100">
+        <div class="container mx-auto p-8 animate-pulse">
+            <!-- Placeholder for Title and logout -->
+            <div class="flex justify-end mb-4">
+                <div class="h-10 bg-slate-500 rounded w-28"></div>
+            </div>
+            <div class="mb-8 flex justify-center">
+                <div class="grid grid-cols-3 gap-4 w-80">
+                    <div class="h-3 bg-slate-500 rounded col-span-2"></div>
+                    <div class="h-3 bg-slate-500 rounded col-span-1"></div>
+                </div>
+            </div>
+
+            <!-- Placeholders for Buttons -->
+            <div class="grid grid-cols-2">
+                <div class="h-10 bg-slate-500 rounded w-24 mx-auto"></div>
+                <div class="h-10 bg-slate-500 rounded w-32 mx-auto"></div>
+            </div>
+        </div>
+    </div>
+    <div class="container mx-auto p-8">
+        <!-- Logout Button -->
+        <div class="flex justify-end mb-4">
+            <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600">
+                Logout
+            </button>
+        </div>
+
+        <div class="text-center mb-8">
+            <h1 id="username-title" class="text-3xl font-bold">Logged in as : </h1>
+        </div>
+
+        <div class="grid grid-cols-2">
+            <div class="text-center">
+                <button id="insert-btn" class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600">
+                    Insert
+                </button>
+            </div>
+
+            <div class="text-center">
+                <button id="fn-btn" class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-green-600">
+                    Fn Execute
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Insert button functionality
+        document.getElementById("insert-btn").addEventListener("click", function (e) {
+            e.preventDefault();
+
+            const details = [{ source: "Web : " + Date.now() }];
+
+            const datastore = catalyst.table;
+            const table = datastore.tableId('FunctionTest');
+            const insertPromise = table.addRow(details);
+
+            insertPromise
+                .then(response => {
+                    console.log(response.content[0].ROWID);
+                    alert("Row Inserted: " + response.content[0].ROWID);
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Error inserting row");
+                });
+        });
+
+        // Function button functionality
+        document.getElementById("fn-btn").addEventListener("click", function (e) {
+            e.preventDefault();
+
+            fetch('/server/AS/', {
+                method: 'POST',
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(result => {
+                    alert('ok');
+                    console.log(result);
+                })
+                .catch(error => {
+                    alert('Error executing function');
+                    console.error(error);
+                });
+        });
+
+        // Logout button functionality
+        document.getElementById("logout-btn").addEventListener("click", function () {
+            catalyst.auth.signOut('/index.html');
+            document.cookie = "thirdparty_email_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = '/index.html';
+        });
+    </script>
+</body>
+
+</html>

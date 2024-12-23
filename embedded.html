@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Embedded</title>
+    <script src="https://static.localzohocdn.com/catalyst/sdk/js/4.4.0/catalystWebSDK.js"></script>
+    <script src="/__catalyst/sdk/init.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen h-screen">
+    <div id="embeddediframe_div" class="bg-white p-8 rounded shadow-md size-full max-w-xl max-h-[75%]"/>
+    <script>
+        const config = {
+                service_url: '/authenticated.html'
+            };
+            /* config is optional
+            {
+                css_url : "/css/embeddediframe.css", // Provide your custom CSS file path here. If no path is provided default css will be rendered
+                service_url : "/app/index.html", // This value is optional. You can provide your redirect URL here.
+                is_customize_forgot_password : true, // Default value is false. Keep this value as true, if you wish to customize Forgot Password page
+                forgot_password_id : "forgotPasswordDivElementId", // The Element id in which forgot password page should be loaded,If no value is provided, it will be rendered in the "loginDivElementId" by default
+                forgot_password_css_url : "/css/forgotPwd.css" // Provide your custom CSS file path for the Forgot Password page.If no path is provided,then the default CSS will be rendered.
+            } */
+            catalyst.auth.signIn("embeddediframe_div", config);
+    </script>
+</body>
